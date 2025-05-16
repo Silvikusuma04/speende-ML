@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Startup Success Prediction</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>Startup Success Prediction</h1>
+    <form method="post">
+        {% for field in ['umur_milestone_terakhir', 'relasi', 'umur_pendanaan_pertama',
+                         'total_dana', 'umur_pendanaan_terakhir', 'umur_milestone_pertama',
+                         'rata_partisipan', 'jumlah_pendanaan', 'jumlah_milestone',
+                         'rasio_dana_per_relasi', 'dana_per_pendanaan'] %}
+        <label>{{ field.replace('_', ' ').capitalize() }}</label>
+        <input type="text" name="{{ field }}" required><br>
+        {% endfor %}
+
+        <label>Kategori</label>
+        <select name="kategori">
+            <option value="music">Music</option>
+            <option value="education">Education</option>
+            <option value="health">Health</option>
+            <option value="technology">Technology</option>
+        </select><br>
+
+        <label>Populer</label>
+        <select name="populer">
+            <option value="0">Tidak</option>
+            <option value="1">Ya</option>
+        </select><br>
+
+        <button type="submit">Prediksi</button>
+    </form>
+
+    {% if result %}
+    <div class="result">
+        <h2>Hasil: {{ result }}</h2>
+        <p>{{ reason }}</p>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>

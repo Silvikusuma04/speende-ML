@@ -12,8 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy seluruh project ke dalam container
 COPY . /app/
 
-# Expose port 5000 (port default Flask)
-EXPOSE 5000
+# Expose port 8080 
+EXPOSE 8080
 
 # Perintah untuk menjalankan aplikasi
 CMD ["python", "app.py"]

@@ -8,7 +8,7 @@ from tensorflow.keras.models import load_model
 app = Flask(__name__)
 
 # Memuat model, encoder, dan scaler
-model = load_model('model_loan.h5')
+model = load_model('model/model_loan.h5')
 
 with open('mapping/scaler.pkl', 'rb') as f:
     scaler = joblib.load(f)

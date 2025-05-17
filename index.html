@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediksi Persetujuan Pinjaman</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Prediksi Persetujuan Pinjaman</h2>
+        <form method="POST" action="/predict">
+            <!-- Total Utang Terhadap Pendapatan -->
+            <label for="Total_Utang_Terhadap_Pendapatan">Total Utang Terhadap Pendapatan:</label>
+            <input type="number" name="Total_Utang_Terhadap_Pendapatan" step="any" required><br>
+
+            <!-- Pendapatan Bulanan -->
+            <label for="Pendapatan_Bulanan">Pendapatan Bulanan:</label>
+            <input type="number" name="Pendapatan_Bulanan" required><br>
+
+            <!-- Pendapatan Tahunan -->
+            <label for="Pendapatan_Tahunan">Pendapatan Tahunan:</label>
+            <input type="number" name="Pendapatan_Tahunan" required><br>
+
+            <!-- Suku Bunga Yang Diterapkan -->
+            <label for="Suku_Bunga_Yang_Diterapkan">Suku Bunga Yang Diterapkan:</label>
+            <input type="number" step="0.01" name="Suku_Bunga_Yang_Diterapkan" required><br>
+
+            <!-- Jumlah Pinjaman -->
+            <label for="Jumlah_Pinjaman">Jumlah Pinjaman:</label>
+            <input type="number" name="Jumlah_Pinjaman" required><br>
+
+            <!-- Suku Bunga Awal -->
+            <label for="Suku_Bunga_Awal">Suku Bunga Awal:</label>
+            <input type="number" step="0.01" name="Suku_Bunga_Awal" required><br>
+
+            <!-- Tingkat Pendidikan -->
+            <label for="Tingkat_Pendidikan">Tingkat Pendidikan:</label>
+            <select name="Tingkat_Pendidikan" required>
+                <option value="SMA">SMA</option>
+                <option value="Diploma">Diploma</option>
+                <option value="Sarjana">Sarjana</option>
+                <option value="Magister">Magister</option>
+                <option value="Doktor">Doktor</option>
+            </select><br>
+
+            <!-- Kekayaan Bersih -->
+            <label for="Kekayaan_Bersih">Kekayaan Bersih:</label>
+            <input type="number" name="Kekayaan_Bersih" required><br>
+
+            <!-- Pembayaran Pinjaman Bulanan -->
+            <label for="Pembayaran_Pinjaman_Bulanan">Pembayaran Pinjaman Bulanan:</label>
+            <input type="number" name="Pembayaran_Pinjaman_Bulanan" required><br>
+
+            <!-- Total Aset -->
+            <label for="Total_Aset">Total Aset:</label>
+            <input type="number" name="Total_Aset" required><br>
+
+            <!-- Usia Pemohon -->
+            <label for="Usia_Pemohon">Usia Pemohon:</label>
+            <input type="number" name="Usia_Pemohon" required><br>
+
+            <!-- Skor Kelayakan Kredit -->
+            <label for="Skor_Kelayakan_Kredit">Skor Kelayakan Kredit:</label>
+            <input type="number" name="Skor_Kelayakan_Kredit" required><br>
+
+            <!-- Pengalaman Kerja -->
+            <label for="Pengalaman_Kerja">Pengalaman Kerja:</label>
+            <input type="number" name="Pengalaman_Kerja" required><br>
+
+            <!-- Durasi Sejarah Kredit -->
+            <label for="Durasi_Sejarah_Kredit">Durasi Sejarah Kredit:</label>
+            <input type="number" name="Durasi_Sejarah_Kredit" required><br>
+
+            <!-- Periode Pembayaran Pinjaman -->
+            <label for="Periode_Pembayaran_Pinjaman">Periode Pembayaran Pinjaman:</label>
+            <input type="number" name="Periode_Pembayaran_Pinjaman" required><br>
+
+            <!-- Pembayaran Utang Bulanan -->
+            <label for="Pembayaran_Utang_Bulanan">Pembayaran Utang Bulanan:</label>
+            <input type="number" name="Pembayaran_Utang_Bulanan" required><br>
+
+            <!-- Saldo Tabungan -->
+            <label for="Saldo_Tabungan">Saldo Tabungan:</label>
+            <input type="number" name="Saldo_Tabungan" required><br>
+
+            <!-- Jumlah Pengecekan Kredit -->
+            <label for="Jumlah_Pengecekan_Kredit">Jumlah Pengecekan Kredit:</label>
+            <input type="number" name="Jumlah_Pengecekan_Kredit" required><br>
+
+            <!-- Jumlah Tanggungan -->
+            <label for="Jumlah_Tanggungan">Jumlah Tanggungan:</label>
+            <input type="number" name="Jumlah_Tanggungan" required><br>
+
+            <!-- Jumlah Jalur Kredit Aktif -->
+            <label for="Jumlah_Jalur_Kredit_Aktif">Jumlah Jalur Kredit Aktif:</label>
+            <input type="number" name="Jumlah_Jalur_Kredit_Aktif" required><br>
+
+            <button type="submit">Prediksi</button>
+        </form>
+
+        <h3>{{ prediction_text }}</h3>
+    </div>
+</body>
+</html>

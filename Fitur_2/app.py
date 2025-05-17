@@ -10,13 +10,13 @@ app = Flask(__name__)
 # Memuat model, encoder, dan scaler
 model = load_model('model_loan.h5')
 
-with open('mapping\scaler.pkl', 'rb') as f:
+with open('mapping/scaler.pkl', 'rb') as f:
     scaler = joblib.load(f)
 
-with open('mapping\label_encoder.pkl', 'rb') as f:
+with open('mapping/label_encoder.pkl', 'rb') as f:
     le = joblib.load(f)
 
-with open('mapping\ordinal_encoder.pkl', 'rb') as f:
+with open('mapping/ordinal_encoder.pkl', 'rb') as f:
     oe = joblib.load(f)
 
 @app.route('/')
@@ -100,7 +100,7 @@ def predict():
 
         return render_template('index.html', prediction_text=f"Prediksi Status Pinjaman: {result} (Probab: {prob:.4f})")
 
-port = int(os.environ.get("PORT", 8080))
-app.run(debug=True, host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    app.run(debug=True, host='0.0.0.0', port=8080)
 
 

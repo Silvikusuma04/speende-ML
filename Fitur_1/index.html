@@ -2,28 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Startup Success Prediction</title>
+    <title>Prediksi Keberhasilan Startup</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 <div class="container">
-    <h1>Startup Success Prediction</h1>
+    <h1>Prediksi Keberhasilan Startup</h1>
     <form method="post">
-        {% for field in ['umur_milestone_terakhir', 'relasi', 'umur_pendanaan_pertama',
-                         'total_dana', 'umur_pendanaan_terakhir', 'umur_milestone_pertama',
-                         'rata_partisipan', 'jumlah_pendanaan', 'jumlah_milestone',
-                         'rasio_dana_per_relasi', 'dana_per_pendanaan'] %}
-        <label>{{ field.replace('_', ' ').capitalize() }}</label>
-        <input type="text" name="{{ field }}" required><br>
-        {% endfor %}
+        <label>Tanggal Pencapaian Awal</label>
+        <input type="date" name="tanggal_pencapaian_awal" required><br>
+
+        <label>Tanggal Pencapaian Terakhir</label>
+        <input type="date" name="tanggal_pencapaian_terakhir" required><br>
+
+        <label>Tanggal Pendanaan Pertama</label>
+        <input type="date" name="tanggal_pendanaan_pertama" required><br>
+
+        <label>Tanggal Pendanaan Terakhir</label>
+        <input type="date" name="tanggal_pendanaan_terakhir" required><br>
+
+        <label>Jumlah Relasi Atau Investor</label>
+        <input type="number" name="relasi" required><br>
+
+        <label>Total Dana Yang Dimiliki (Rp)</label>
+        <input type="number" name="total_dana" required><br>
+
+        <label>Rata-rata Partisipan Atau Pelanggan</label>
+        <input type="number" name="rata_partisipan" required><br>
+
+        <label>Jumlah Penerimaan Pendanaan</label>
+        <input type="number" name="jumlah_pendanaan" required><br>
+
+        <label>Jumlah Pencapaian</label>
+        <input type="number" name="jumlah_capaian" required><br>
+
+        <label>Rasio Dana Yang di Investasikan per Relasi (Rp)</label>
+        <input type="number" name="rasio_dana_per_relasi" required><br>
+
+        <label>Rata-rata Dana Tiap Pendanaan (Rp)</label>
+        <input type="number" name="dana_per_pendanaan" required><br>
 
         <label>Kategori</label>
-        <select name="kategori">
-            <option value="music">Music</option>
-            <option value="education">Education</option>
-            <option value="health">Health</option>
-            <option value="technology">Technology</option>
-        </select><br>
+<select name="kategori">
+    <option value="advertising">Periklanan</option>
+    <option value="analytics">Analitik</option>
+    <option value="automotive">Otomotif</option>
+    <option value="biotech">Bioteknologi</option>
+    <option value="cleantech">cleantech</option>
+    <option value="consulting">Konsultasi</option>
+    <option value="ecommerce">E-Commerce</option>
+    <option value="education">Pendidikan</option>
+    <option value="enterprise">Perusahaan</option>
+    <option value="fashion">Fashion</option>
+    <option value="finance">Keuangan</option>
+    <option value="games_video">Game & Video</option>
+    <option value="hardware">Perangkat Keras</option>
+    <option value="health">Kesehatan</option>
+    <option value="hospitality">Perhotelan</option>
+    <option value="manufacturing">Manufaktur</option>
+    <option value="medical">Medis</option>
+    <option value="messaging">Pesan</option>
+    <option value="mobile">Seluler</option>
+    <option value="music">Musik</option>
+    <option value="network_hosting">Jaringan & Hosting</option>
+    <option value="news">Berita</option>
+    <option value="photo_video">Foto & Video</option>
+    <option value="public_relations">Hubungan Masyarakat</option>
+    <option value="real_estate">Properti</option>
+    <option value="search">Pencarian</option>
+    <option value="security">Keamanan</option>
+    <option value="semiconductor">Semikonduktor</option>
+    <option value="social">Sosial</option>
+    <option value="software">Perangkat Lunak</option>
+    <option value="sports">Olahraga</option>
+    <option value="transportation">Transportasi</option>
+    <option value="travel">Pariwisata</option>
+    <option value="web">Website</option>
+    <option value="other">Lainnya</option>
+</select><br>
 
         <label>Populer</label>
         <select name="populer">
@@ -34,12 +90,37 @@
         <button type="submit">Prediksi</button>
     </form>
 
-    {% if result %}
-    <div class="result">
+    {% if result == "Sukses" %}
+    <div class="result result-success">
         <h2>Hasil: {{ result }}</h2>
-        <p>{{ reason }}</p>
     </div>
+    {% elif result == "Gagal" %}
+    <div class="result result-fail">
+        <h2>Hasil: {{ result }}</h2>
+    </div>  
     {% endif %}
+{% if pos_reason %}
+<div class="result">
+    <h3>Faktor yang Mendukung:</h3>
+    <ul>
+        {% for r in pos_reason %}
+        <li>{{ r }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if neg_reason %}
+<div class="result-negative">
+    <h3>Faktor yang Mengurangi:</h3>
+    <ul>
+        {% for r in neg_reason %}
+        <li>{{ r }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
 </div>
 </body>
 </html>

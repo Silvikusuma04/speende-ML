@@ -6,27 +6,80 @@ from keras.models import load_model
 import shap
 import random
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Load model dan preprocessing
 model = load_model('model/best_model.h5')
 le = joblib.load('Mapping/label_encoder_kategori.pkl')
 scaler = joblib.load('Mapping/scaler_startup_success.pkl')
 
-# SHAP background
 background = np.zeros((10, len(scaler.feature_names_in_) + 1))
 def model_predict(X):
     return model.predict(X).flatten()
 explainer = shap.KernelExplainer(model_predict, background)
 
-# Load HTML template dari file
 with open("index.html", "r") as f:
     html_template = f.read()
 
 @app.route('/style.css')
 def serve_css():
     return send_from_directory('.', 'style.css')
+
+def calculate_age_in_years(date_str):
+    today = datetime.today()
+    try:
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        delta = today - date_obj
+        return round(delta.days / 365, 2)
+    except ValueError:
+        return 0.0
+
+def generate_reason_with_values(shap_vals, features, label_output, original_values, n_random=5):
+    display_labels = {
+        'umur_milestone_terakhir': 'Umur Pencapaian Terakhir',
+        'relasi': 'Jumlah Relasi atau Investor',
+        'umur_pendanaan_pertama': 'Umur Pendanaan Pertama',
+        'total_dana': 'Total Dana yang Dimiliki',
+        'umur_pendanaan_terakhir': 'Umur Pendanaan Terakhir',
+        'umur_milestone_pertama': 'Umur Pencapaian Awal',
+        'rata_partisipan': 'Rata-rata Partisipan atau Pelanggan',
+        'jumlah_pendanaan': 'Jumlah Penerimaan Pendanaan',
+        'jumlah_milestone': 'Jumlah Pencapaian',
+        'rasio_dana_per_relasi': 'Rasio Dana diinvestasikan per Relasi',
+        'dana_per_pendanaan': 'Rata-rata Dana Tiap Pendanaan',
+        'populer': 'Status Populer'
+    }
+    positive_reasons = []
+    negative_reasons = []
+    shap_list = list(zip(features, shap_vals[0]))
+    shap_list_sorted = sorted(shap_list, key=lambda x: abs(x[1]), reverse=True)
+
+    for feat, val in shap_list_sorted:
+        arah = "mendukung" if val > 0 else "mengurangi"
+        nilai_asli = original_values.get(feat, 0)
+        satuan = " tahun" if "umur" in feat else ""
+        if isinstance(nilai_asli, str):
+            nilai_fmt = nilai_asli
+        elif abs(nilai_asli) >= 1_000_000:
+            nilai_fmt = f"{int(nilai_asli / 1_000_000):,} juta"
+        elif abs(nilai_asli) >= 1_000:
+            nilai_fmt = f"{int(nilai_asli):,}"
+        else:
+            nilai_fmt = f"{nilai_asli:.2f}"
+        label_feat = display_labels.get(feat, feat.replace('_', ' '))
+        if label_output.lower() == 'gagal':
+            arah_text = 'mengurangi risiko kegagalan' if val > 0 else 'meningkatkan risiko kegagalan'
+        else:
+            arah_text = 'mendukung potensi sukses' if val > 0 else 'mengurangi potensi sukses'
+        reason_text = f"'{label_feat}' ({nilai_fmt}{satuan}) {arah_text}"
+        if val > 0:
+            positive_reasons.append(reason_text)
+        else:
+            negative_reasons.append(reason_text)
+        
+
+    return positive_reasons, negative_reasons
 
 def predict_and_explain(data_dict):
     df = pd.DataFrame([data_dict])
@@ -51,46 +104,30 @@ def predict_and_explain(data_dict):
     inverse_values['populer'] = int(df['populer'].values[0])
     inverse_values['kategori'] = original_input['kategori'].values[0]
 
-    def generate_reason_with_values(shap_vals, features, label_output, original_values, n_random=5):
-        shap_list = list(zip(features, shap_vals[0]))
-        sampled = random.sample(shap_list, min(n_random, len(shap_list)))
-        reasons = []
-        for feat, val in sampled:
-            arah = "meningkatkan" if val > 0 else "menurunkan"
-            nilai_asli = original_values.get(feat, 0)
-            if isinstance(nilai_asli, str):
-                nilai_fmt = nilai_asli
-            elif abs(nilai_asli) >= 1000:
-                nilai_fmt = f"{int(nilai_asli):,}"
-            else:
-                nilai_fmt = f"{nilai_asli:.2f}"
-            reasons.append(f"{feat.replace('_', ' ')} ({nilai_fmt}) {arah} kemungkinan {label_output.lower()}")
-        return " dan ".join(reasons)
-
-    reason = generate_reason_with_values(shap_array, list(scaler.feature_names_in_) + ['populer'], label, inverse_values)
-    return label, reason
+    pos_reason, neg_reason = generate_reason_with_values(shap_array, list(scaler.feature_names_in_) + ['populer'], label, inverse_values)
+    return label, pos_reason, neg_reason
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    result, reason = None, None
+    result, pos_reason, neg_reason = None, None, None
     if request.method == "POST":
         data_input = {
-            'umur_milestone_terakhir': float(request.form['umur_milestone_terakhir']),
+            'umur_milestone_terakhir': calculate_age_in_years(request.form['tanggal_pencapaian_terakhir']),
             'relasi': int(request.form['relasi']),
-            'umur_pendanaan_pertama': float(request.form['umur_pendanaan_pertama']),
+            'umur_pendanaan_pertama': calculate_age_in_years(request.form['tanggal_pendanaan_pertama']),
             'total_dana': float(request.form['total_dana']),
-            'umur_pendanaan_terakhir': float(request.form['umur_pendanaan_terakhir']),
-            'umur_milestone_pertama': float(request.form['umur_milestone_pertama']),
+            'umur_pendanaan_terakhir': calculate_age_in_years(request.form['tanggal_pendanaan_terakhir']),
+            'umur_milestone_pertama': calculate_age_in_years(request.form['tanggal_pencapaian_awal']),
             'rata_partisipan': int(request.form['rata_partisipan']),
             'kategori': request.form['kategori'],
             'jumlah_pendanaan': int(request.form['jumlah_pendanaan']),
-            'jumlah_milestone': int(request.form['jumlah_milestone']),
+            'jumlah_milestone': int(request.form['jumlah_capaian']),
             'rasio_dana_per_relasi': float(request.form['rasio_dana_per_relasi']),
             'dana_per_pendanaan': float(request.form['dana_per_pendanaan']),
             'populer': int(request.form['populer'])
         }
-        result, reason = predict_and_explain(data_input)
-    return render_template_string(html_template, result=result, reason=reason)
+        result, pos_reason, neg_reason = predict_and_explain(data_input)
+    return render_template_string(html_template, result=result, pos_reason=pos_reason, neg_reason=neg_reason)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=8080)

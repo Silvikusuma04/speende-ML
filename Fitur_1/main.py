@@ -1,17 +1,14 @@
-from flask import Flask, request, render_template_string, send_from_directory
+from flask import Flask, request, render_template_string, send_from_directory, jsonify
 import pandas as pd
 import numpy as np
 import joblib
 from keras.models import load_model
 import shap
-import random
 import os
 from datetime import datetime
 from flask_cors import CORS
-from flask import jsonify
 
 app = Flask(__name__)
-
 CORS(app)
 
 model = load_model('model/best_model.h5')
@@ -39,7 +36,7 @@ def calculate_age_in_years(date_str):
     except ValueError:
         return 0.0
 
-def generate_reason_with_values(shap_vals, features, label_output, original_values, n_random=5):
+def generate_reason_with_values(shap_vals, features, label_output, original_values):
     display_labels = {
         'umur_milestone_terakhir': 'Umur Pencapaian Terakhir',
         'relasi': 'Jumlah Relasi atau Investor',
@@ -81,7 +78,6 @@ def generate_reason_with_values(shap_vals, features, label_output, original_valu
             positive_reasons.append(reason_text)
         else:
             negative_reasons.append(reason_text)
-        
 
     return positive_reasons, negative_reasons
 
@@ -108,10 +104,12 @@ def predict_and_explain(data_dict):
     inverse_values['populer'] = int(df['populer'].values[0])
     inverse_values['kategori'] = original_input['kategori'].values[0]
 
-    pos_reason, neg_reason = generate_reason_with_values(shap_array, list(scaler.feature_names_in_) + ['populer'], label, inverse_values)
+    pos_reason, neg_reason = generate_reason_with_values(
+        shap_array, list(scaler.feature_names_in_) + ['populer'], label, inverse_values
+    )
     return label, pos_reason, neg_reason
 
-@app.route("/predict", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 def predict():
     result, pos_reason, neg_reason = None, None, None
 
@@ -136,7 +134,6 @@ def predict():
                 }
             except Exception as e:
                 return jsonify({"error": f"Invalid JSON: {str(e)}"}), 400
-
         else:
             try:
                 data_input = {
@@ -167,6 +164,44 @@ def predict():
             })
 
     return render_template_string(html_template, result=result, pos_reason=pos_reason, neg_reason=neg_reason)
+
+@app.route("/predict", methods=["GET", "POST"])
+def api_generate():
+    if request.method == "POST":
+        if not request.is_json:
+            return jsonify({"error": "Request body must be JSON"}), 400
+        try:
+            data = request.get_json()
+            data_input = {
+                'umur_milestone_terakhir': float(data['umur_milestone_terakhir']),
+                'relasi': int(data['relasi']),
+                'umur_pendanaan_pertama': float(data['umur_pendanaan_pertama']),
+                'total_dana': float(data['total_dana']),
+                'umur_pendanaan_terakhir': float(data['umur_pendanaan_terakhir']),
+                'umur_milestone_pertama': float(data['umur_milestone_pertama']),
+                'rata_partisipan': int(data['rata_partisipan']),
+                'kategori': data['kategori'],
+                'jumlah_pendanaan': int(data['jumlah_pendanaan']),
+                'jumlah_milestone': int(data['jumlah_milestone']),
+                'rasio_dana_per_relasi': float(data['rasio_dana_per_relasi']),
+                'dana_per_pendanaan': float(data['dana_per_pendanaan']),
+                'populer': int(data['populer'])
+            }
+        except Exception as e:
+            return jsonify({"error": f"Invalid input: {str(e)}"}), 400
+
+        result, pos_reason, neg_reason = predict_and_explain(data_input)
+
+        return jsonify({
+            "result": result,
+            "positive_reasons": pos_reason,
+            "negative_reasons": neg_reason
+        })
+
+    elif request.method == "GET":
+        return jsonify({
+            "message": "Silakan gunakan metode POST dengan JSON berisi input data."
+        })
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))

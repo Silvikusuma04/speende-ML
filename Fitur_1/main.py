@@ -157,7 +157,6 @@ def predict():
             except Exception as e:
                 return f"Form input error: {str(e)}", 400
 
-        # Lakukan prediksi
         result, pos_reason, neg_reason = predict_and_explain(data_input)
 
         if request.is_json:

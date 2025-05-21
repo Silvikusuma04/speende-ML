@@ -7,8 +7,12 @@ import shap
 import random
 import os
 from datetime import datetime
+from flask_cors import CORS
+from flask import jsonify
 
 app = Flask(__name__)
+
+CORS(app)
 
 model = load_model('model/best_model.h5')
 le = joblib.load('Mapping/label_encoder_kategori.pkl')
@@ -107,26 +111,62 @@ def predict_and_explain(data_dict):
     pos_reason, neg_reason = generate_reason_with_values(shap_array, list(scaler.feature_names_in_) + ['populer'], label, inverse_values)
     return label, pos_reason, neg_reason
 
-@app.route("/", methods=["GET", "POST"])
-def index():
+@app.route("/predict", methods=["GET", "POST"])
+def predict():
     result, pos_reason, neg_reason = None, None, None
+
     if request.method == "POST":
-        data_input = {
-            'umur_milestone_terakhir': calculate_age_in_years(request.form['tanggal_pencapaian_terakhir']),
-            'relasi': int(request.form['relasi']),
-            'umur_pendanaan_pertama': calculate_age_in_years(request.form['tanggal_pendanaan_pertama']),
-            'total_dana': float(request.form['total_dana']),
-            'umur_pendanaan_terakhir': calculate_age_in_years(request.form['tanggal_pendanaan_terakhir']),
-            'umur_milestone_pertama': calculate_age_in_years(request.form['tanggal_pencapaian_awal']),
-            'rata_partisipan': int(request.form['rata_partisipan']),
-            'kategori': request.form['kategori'],
-            'jumlah_pendanaan': int(request.form['jumlah_pendanaan']),
-            'jumlah_milestone': int(request.form['jumlah_capaian']),
-            'rasio_dana_per_relasi': float(request.form['rasio_dana_per_relasi']),
-            'dana_per_pendanaan': float(request.form['dana_per_pendanaan']),
-            'populer': int(request.form['populer'])
-        }
+        if request.is_json:
+            data = request.get_json()
+            try:
+                data_input = {
+                    'umur_milestone_terakhir': float(data['umur_milestone_terakhir']),
+                    'relasi': int(data['relasi']),
+                    'umur_pendanaan_pertama': float(data['umur_pendanaan_pertama']),
+                    'total_dana': float(data['total_dana']),
+                    'umur_pendanaan_terakhir': float(data['umur_pendanaan_terakhir']),
+                    'umur_milestone_pertama': float(data['umur_milestone_pertama']),
+                    'rata_partisipan': int(data['rata_partisipan']),
+                    'kategori': data['kategori'],
+                    'jumlah_pendanaan': int(data['jumlah_pendanaan']),
+                    'jumlah_milestone': int(data['jumlah_milestone']),
+                    'rasio_dana_per_relasi': float(data['rasio_dana_per_relasi']),
+                    'dana_per_pendanaan': float(data['dana_per_pendanaan']),
+                    'populer': int(data['populer'])
+                }
+            except Exception as e:
+                return jsonify({"error": f"Invalid JSON: {str(e)}"}), 400
+
+        else:
+            try:
+                data_input = {
+                    'umur_milestone_terakhir': calculate_age_in_years(request.form['tanggal_pencapaian_terakhir']),
+                    'relasi': int(request.form['relasi']),
+                    'umur_pendanaan_pertama': calculate_age_in_years(request.form['tanggal_pendanaan_pertama']),
+                    'total_dana': float(request.form['total_dana']),
+                    'umur_pendanaan_terakhir': calculate_age_in_years(request.form['tanggal_pendanaan_terakhir']),
+                    'umur_milestone_pertama': calculate_age_in_years(request.form['tanggal_pencapaian_awal']),
+                    'rata_partisipan': int(request.form['rata_partisipan']),
+                    'kategori': request.form['kategori'],
+                    'jumlah_pendanaan': int(request.form['jumlah_pendanaan']),
+                    'jumlah_milestone': int(request.form['jumlah_capaian']),
+                    'rasio_dana_per_relasi': float(request.form['rasio_dana_per_relasi']),
+                    'dana_per_pendanaan': float(request.form['dana_per_pendanaan']),
+                    'populer': int(request.form['populer'])
+                }
+            except Exception as e:
+                return f"Form input error: {str(e)}", 400
+
+        # Lakukan prediksi
         result, pos_reason, neg_reason = predict_and_explain(data_input)
+
+        if request.is_json:
+            return jsonify({
+                "result": result,
+                "positive_reasons": pos_reason,
+                "negative_reasons": neg_reason
+            })
+
     return render_template_string(html_template, result=result, pos_reason=pos_reason, neg_reason=neg_reason)
 
 if __name__ == "__main__":

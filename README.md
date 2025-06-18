@@ -63,7 +63,7 @@ This model predicts the likelihood of an individual's loan application being app
 The predictive models have been deployed and are accessible via HTTP API endpoints on Google Cloud Platform.
 
 ### 1. API - Startup Success Prediction
-* **URL**: `https://speende-1-ml-325126223708.europe-west1.run.app/predict`
+* **URL**: `https://speende-1-ml-325126223708.europe-west1.run.app`
 * **Method**: `POST`
 * **Example `curl` request**:
     ```bash
@@ -87,7 +87,7 @@ The predictive models have been deployed and are accessible via HTTP API endpoin
     ```
 
 ### 2. API - Loan Approval Prediction
-* **URL**: `https://speende-fitur2-325126223708.us-central1.run.app/predict`
+* **URL**: `https://speende-fitur2-325126223708.us-central1.run.app`
 * **Method**: `POST`
 * **Example `curl` request**:
     ```bash
